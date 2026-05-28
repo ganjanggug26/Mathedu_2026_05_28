@@ -98,3 +98,6 @@ CUSTOM_CSS = """
     .stButton > button {
         min-height: 2.7rem;
         border-radius: 8px;
+    }
+</style>
+"""
