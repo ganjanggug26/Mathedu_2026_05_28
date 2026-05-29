@@ -17,7 +17,7 @@ st.set_page_config(
 CUSTOM_CSS = """
 <style>
     :root {
-        --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
+        --math-font: "HyhwpEQ", "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
         --card-bg: #ffffff;
         --soft-card-bg: #f8fafc;
         --formula-bg: #f7f9fc;
@@ -306,7 +306,7 @@ def build_animation_html(settings: MotionSettings) -> str:
           --grid: #e4e7ec;
           --accent: #e11d48;
           --blue: #2563eb;
-          --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
+          --math-font: "HyhwpEQ", "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           color: var(--ink);
         }}
@@ -607,7 +607,7 @@ def build_animation_html(settings: MotionSettings) -> str:
 
 
 def render_details(settings: MotionSettings):
-    rows, min_pos, max_pos, min_vel, max_vel, min_acc, max_acc = extrema_summary(settings)
+    _, min_pos, max_pos, min_vel, max_vel, min_acc, max_acc = extrema_summary(settings)
 
     st.markdown(
         f"""
@@ -664,16 +664,6 @@ def render_details(settings: MotionSettings):
             unsafe_allow_html=True,
         )
 
-    st.markdown("**극값 후보 지점**")
-    st.dataframe(
-        [
-            {"시간 t": fmt(t), "위치 x(t)": fmt(x), "속도 v(t)": fmt(v), "가속도 a(t)": fmt(acc)}
-            for t, x, v, acc in rows
-        ],
-        use_container_width=True,
-        hide_index=True,
-    )
-
 
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 st.title("미적분I: 속도와 가속도")
@@ -691,12 +681,8 @@ with st.container(border=True):
     linear = coef_cols[2].number_input("t의 계수 c", value=-4.0, step=0.5, format="%.3f")
     constant = coef_cols[3].number_input("상수항 d", value=3.0, step=0.5, format="%.3f")
 
-    range_cols = st.columns([1, 1, 2])
-    t_min = range_cols[0].number_input("시작 시간", value=0.0, step=0.5, format="%.2f")
-    t_max = range_cols[1].number_input("끝 시간", value=6.0, step=0.5, format="%.2f")
-    if t_max <= t_min:
-        st.warning("끝 시간은 시작 시간보다 커야 합니다. 끝 시간을 자동으로 조정했습니다.")
-        t_max = t_min + 1
+    t_min = 0.0
+    t_max = st.number_input("끝 시간", value=6.0, min_value=0.5, step=0.5, format="%.2f")
 
 settings = MotionSettings(cubic, quadratic, linear, constant, float(t_min), float(t_max), 160)
 
