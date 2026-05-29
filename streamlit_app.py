@@ -18,6 +18,13 @@ CUSTOM_CSS = """
 <style>
     :root {
         --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
+        --card-bg: #ffffff;
+        --soft-card-bg: #f8fafc;
+        --formula-bg: #f7f9fc;
+        --card-border: #d8dee8;
+        --text-strong: #111827;
+        --text-muted: #475467;
+        --page-muted: #5d6673;
     }
     .block-container {
         max-width: 1280px;
@@ -33,13 +40,14 @@ CUSTOM_CSS = """
         margin: 0.4rem 0 0.1rem;
     }
     .subtle {
-        color: #5d6673;
+        color: var(--page-muted);
         font-size: 0.95rem;
         line-height: 1.45;
     }
     .formula-box {
-        border: 1px solid #d8dee8;
-        background: #f7f9fc;
+        border: 1px solid var(--card-border);
+        background: var(--formula-bg);
+        color: var(--text-strong);
         border-radius: 8px;
         padding: 0.8rem 1rem;
         margin-top: 0.35rem;
@@ -53,29 +61,31 @@ CUSTOM_CSS = """
         margin: 0.5rem 0 1rem;
     }
     .formula-card {
-        border: 1px solid #d8dee8;
-        background: #ffffff;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--text-strong);
         border-radius: 8px;
         padding: 0.95rem 1rem;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     }
     .formula-card .label {
-        color: #475467;
+        color: var(--text-muted);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-size: 0.86rem;
         font-weight: 800;
         margin-bottom: 0.35rem;
     }
     .formula-card .math {
-        color: #111827;
+        color: var(--text-strong);
         font-family: var(--math-font);
         font-size: 1.35rem;
         font-weight: 700;
         line-height: 1.35;
     }
     .detail-card {
-        border: 1px solid #d8dee8;
-        background: #f8fafc;
+        border: 1px solid var(--card-border);
+        background: var(--soft-card-bg);
+        color: var(--text-strong);
         border-radius: 8px;
         padding: 0.95rem 1rem;
         min-height: 8.8rem;
@@ -83,15 +93,25 @@ CUSTOM_CSS = """
     .detail-card h4 {
         margin: 0 0 0.55rem;
         font-size: 1rem;
+        color: var(--text-strong);
+        font-family: var(--math-font);
+        font-weight: 400;
     }
     .detail-card p {
         margin: 0.38rem 0;
         font-size: 1.03rem;
+        color: var(--text-strong);
+        font-family: var(--math-font);
+        font-weight: 400;
     }
     .math-text {
         font-family: var(--math-font);
         font-size: 1.08rem;
-        font-weight: 700;
+        font-weight: 400;
+    }
+    sup {
+        font-size: 0.72em;
+        line-height: 0;
     }
     @media (max-width: 860px) {
         .formula-grid {
@@ -102,6 +122,11 @@ CUSTOM_CSS = """
         min-height: 2.7rem;
         border-radius: 8px;
         font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --page-muted: #d0d5dd;
+        }
     }
 </style>
 """
@@ -149,8 +174,8 @@ def polynomial_label(terms) -> str:
 def motion_formula(settings: MotionSettings) -> str:
     return polynomial_label(
         [
-            (settings.cubic, "t^3"),
-            (settings.quadratic, "t^2"),
+            (settings.cubic, "t<sup>3</sup>"),
+            (settings.quadratic, "t<sup>2</sup>"),
             (settings.linear, "t"),
             (settings.constant, ""),
         ]
@@ -160,7 +185,7 @@ def motion_formula(settings: MotionSettings) -> str:
 def velocity_formula(settings: MotionSettings) -> str:
     return polynomial_label(
         [
-            (3 * settings.cubic, "t^2"),
+            (3 * settings.cubic, "t<sup>2</sup>"),
             (2 * settings.quadratic, "t"),
             (settings.linear, ""),
         ]
@@ -657,12 +682,12 @@ st.caption("함수 x(t)의 값을 수직선 위 위치와 좌표평면의 점으
 with st.container(border=True):
     st.markdown('<div class="section-title">함수와 시간 범위 설정</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="subtle">상단에서 x(t)=at^3+bt^2+ct+d를 정하고, 아래에서 같은 운동을 두 표현으로 비교합니다.</div>',
+        '<div class="subtle">상단에서 x(t)=at<sup>3</sup>+bt<sup>2</sup>+ct+d를 정하고, 아래에서 같은 운동을 두 표현으로 비교합니다.</div>',
         unsafe_allow_html=True,
     )
     coef_cols = st.columns(4)
-    cubic = coef_cols[0].number_input("t^3의 계수 a", value=0.0, step=0.5, format="%.3f")
-    quadratic = coef_cols[1].number_input("t^2의 계수 b", value=1.0, step=0.5, format="%.3f")
+    cubic = coef_cols[0].number_input("t³의 계수 a", value=0.0, step=0.5, format="%.3f")
+    quadratic = coef_cols[1].number_input("t²의 계수 b", value=1.0, step=0.5, format="%.3f")
     linear = coef_cols[2].number_input("t의 계수 c", value=-4.0, step=0.5, format="%.3f")
     constant = coef_cols[3].number_input("상수항 d", value=3.0, step=0.5, format="%.3f")
 
