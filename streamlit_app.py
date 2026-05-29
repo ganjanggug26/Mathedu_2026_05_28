@@ -17,7 +17,7 @@ st.set_page_config(
 CUSTOM_CSS = """
 <style>
     :root {
-        --math-font: "HyhwpEQ", "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
+        --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
         --card-bg: #ffffff;
         --soft-card-bg: #f8fafc;
         --formula-bg: #f7f9fc;
@@ -306,7 +306,7 @@ def build_animation_html(settings: MotionSettings) -> str:
           --grid: #e4e7ec;
           --accent: #e11d48;
           --blue: #2563eb;
-          --math-font: "HyhwpEQ", "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
+          --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           color: var(--ink);
         }}
