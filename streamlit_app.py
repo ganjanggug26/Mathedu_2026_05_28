@@ -16,6 +16,9 @@ st.set_page_config(
 
 CUSTOM_CSS = """
 <style>
+    :root {
+        --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
+    }
     .block-container {
         max-width: 1280px;
         padding-top: 1.2rem;
@@ -40,7 +43,7 @@ CUSTOM_CSS = """
         border-radius: 8px;
         padding: 0.8rem 1rem;
         margin-top: 0.35rem;
-        font-family: "KaTeX_Main", "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+        font-family: var(--math-font);
         font-size: 1.12rem;
     }
     .formula-grid {
@@ -65,7 +68,7 @@ CUSTOM_CSS = """
     }
     .formula-card .math {
         color: #111827;
-        font-family: "KaTeX_Main", "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+        font-family: var(--math-font);
         font-size: 1.35rem;
         font-weight: 700;
         line-height: 1.35;
@@ -86,7 +89,7 @@ CUSTOM_CSS = """
         font-size: 1.03rem;
     }
     .math-text {
-        font-family: "KaTeX_Main", "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+        font-family: var(--math-font);
         font-size: 1.08rem;
         font-weight: 700;
     }
@@ -278,11 +281,12 @@ def build_animation_html(settings: MotionSettings) -> str:
           --grid: #e4e7ec;
           --accent: #e11d48;
           --blue: #2563eb;
+          --math-font: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           color: var(--ink);
         }}
         #motion-app .math-font {{
-          font-family: "KaTeX_Main", "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+          font-family: var(--math-font);
           font-weight: 750;
         }}
         #motion-app .toolbar {{
@@ -310,7 +314,7 @@ def build_animation_html(settings: MotionSettings) -> str:
           color: var(--muted);
           font-size: 15px;
           margin-left: auto;
-          font-family: "KaTeX_Main", "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+          font-family: var(--math-font);
           font-weight: 760;
         }}
         #motion-app .grid {{
@@ -364,7 +368,7 @@ def build_animation_html(settings: MotionSettings) -> str:
           fill: #344054;
           font-size: 14px;
           font-weight: 650;
-          font-family: "KaTeX_Main", "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+          font-family: var(--math-font);
         }}
         #motion-app .small {{
           fill: #667085;
@@ -384,6 +388,8 @@ def build_animation_html(settings: MotionSettings) -> str:
         }}
       </style>
       <div class="toolbar">
+        <button id="stepBack">t -1</button>
+        <button id="stepForward">t +1</button>
         <button id="playLine">Play 수직선</button>
         <button id="playPlane">Play 좌표평면</button>
         <button id="playBoth" class="primary">Play Both</button>
@@ -421,6 +427,8 @@ def build_animation_html(settings: MotionSettings) -> str:
         const tHi = {t_hi};
         const yLo = {y_lo};
         const yHi = {y_hi};
+        const trueTMin = {settings.t_min};
+        const trueTMax = {settings.t_max};
         const line = {{
           left: 42, right: 518, y: 124,
           scale: (x) => 42 + (x - xLo) / (xHi - xLo) * (518 - 42)
@@ -430,7 +438,7 @@ def build_animation_html(settings: MotionSettings) -> str:
           sx: (t) => 54 + (t - tLo) / (tHi - tLo) * (650 - 54),
           sy: (x) => 340 - (x - yLo) / (yHi - yLo) * (340 - 24)
         }};
-        const state = {{ lineTimer: null, planeTimer: null, lineIndex: 0, planeIndex: 0 }};
+        const state = {{ lineTimer: null, planeTimer: null, lineIndex: 0, planeIndex: 0, currentT: rows[0].t }};
 
         function fmt(n) {{
           const clean = Math.abs(n) < 1e-10 ? 0 : n;
@@ -447,6 +455,10 @@ def build_animation_html(settings: MotionSettings) -> str:
             if (dist < bestDist) {{ best = i; bestDist = dist; }}
           }});
           return best;
+        }}
+
+        function rowAtT(t) {{
+          return rows[nearestIndex(Math.min(trueTMax, Math.max(trueTMin, t)))];
         }}
 
         function drawTicks() {{
@@ -518,6 +530,18 @@ def build_animation_html(settings: MotionSettings) -> str:
           document.getElementById("readout").textContent = `t=${{fmt(row.t)}} | x=${{fmt(row.x)}} | v=${{fmt(row.v)}} | a=${{fmt(row.acc)}}`;
         }}
 
+        function renderBoth(row) {{
+          state.currentT = row.t;
+          setLinePoint(row);
+          setPlanePoint(row);
+          updateReadout(row);
+        }}
+
+        function stepT(delta) {{
+          pauseAll();
+          renderBoth(rowAtT(state.currentT + delta));
+        }}
+
         function play(which) {{
           const timerName = which === "line" ? "lineTimer" : "planeTimer";
           const indexName = which === "line" ? "lineIndex" : "planeIndex";
@@ -527,6 +551,7 @@ def build_animation_html(settings: MotionSettings) -> str:
             const row = rows[state[indexName]];
             if (which === "line") setLinePoint(row);
             if (which === "plane") setPlanePoint(row);
+            state.currentT = row.t;
             updateReadout(row);
             state[indexName] += 1;
             if (state[indexName] >= rows.length) clearInterval(state[timerName]);
@@ -536,15 +561,17 @@ def build_animation_html(settings: MotionSettings) -> str:
         function pauseAll() {{
           if (state.lineTimer) clearInterval(state.lineTimer);
           if (state.planeTimer) clearInterval(state.planeTimer);
+          state.lineTimer = null;
+          state.planeTimer = null;
         }}
 
         drawTicks();
         drawCurve();
         const initialRow = rows[0];
-        setLinePoint(initialRow);
-        setPlanePoint(initialRow);
-        updateReadout(initialRow);
+        renderBoth(initialRow);
 
+        document.getElementById("stepBack").addEventListener("click", () => stepT(-1));
+        document.getElementById("stepForward").addEventListener("click", () => stepT(1));
         document.getElementById("playLine").addEventListener("click", () => play("line"));
         document.getElementById("playPlane").addEventListener("click", () => play("plane"));
         document.getElementById("playBoth").addEventListener("click", () => {{ play("line"); play("plane"); }});
@@ -566,11 +593,11 @@ def render_details(settings: MotionSettings):
             </div>
             <div class="formula-card">
                 <div class="label">속도 함수</div>
-                <div class="math">v(t) = x'(t) = {velocity_formula(settings)}</div>
+                <div class="math">v(t) = x′(t) = {velocity_formula(settings)}</div>
             </div>
             <div class="formula-card">
                 <div class="label">가속도 함수</div>
-                <div class="math">a(t) = v'(t) = {acceleration_formula(settings)}</div>
+                <div class="math">a(t) = v′(t) = {acceleration_formula(settings)}</div>
             </div>
         </div>
         """,
@@ -645,10 +672,6 @@ with st.container(border=True):
     if t_max <= t_min:
         st.warning("끝 시간은 시작 시간보다 커야 합니다. 끝 시간을 자동으로 조정했습니다.")
         t_max = t_min + 1
-    range_cols[2].markdown(
-        '<div class="formula-box">애니메이션 정밀도는 최댓값으로 고정되어 있습니다.</div>',
-        unsafe_allow_html=True,
-    )
 
 settings = MotionSettings(cubic, quadratic, linear, constant, float(t_min), float(t_max), 160)
 
